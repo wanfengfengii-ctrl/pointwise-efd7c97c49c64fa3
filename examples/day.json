@@ -1,0 +1,32 @@
+{
+  "recordings": [
+    {"recording": "A", "revision": "1", "length": 6, "origin": "河岸采访册·讲述第 12 号"},
+    {"recording": "B", "revision": "1", "length": 4, "origin": "河岸采访册·译声第 12 号"}
+  ],
+  "first_cut": {
+    "version": "R1",
+    "parent": "root",
+    "operations": [
+      {"op": "place", "slot": "a", "track": "narration", "recording": "A", "revision": "1", "source": [2, 6], "at": 0},
+      {"op": "place", "slot": "b", "track": "translation", "recording": "B", "revision": "1", "source": [1, 3], "at": 1},
+      {"op": "place", "slot": "b-tail", "track": "translation", "recording": "B", "revision": "1", "source": [3, 4], "at": 5}
+    ]
+  },
+  "original_order": {"order_id": "morning-mix", "version": "R1", "window": [1, 3]},
+  "original_approval": {"request_id": "morning-approved", "order_id": "morning-mix", "decision": "approve"},
+  "second_cut": {
+    "version": "R2",
+    "parent": "R1",
+    "operations": [
+      {"op": "trim", "slot": "a", "source": [3, 5]},
+      {"op": "move", "slot": "a", "at": 6},
+      {"op": "move", "slot": "b", "at": 6},
+      {"op": "remove", "slot": "b-tail"},
+      {"op": "copy", "slot": "a", "as": "a-repeat", "at": 8},
+      {"op": "copy", "slot": "b", "as": "b-repeat", "at": 8}
+    ]
+  },
+  "supplement_order": {"order_id": "afternoon-mix", "version": "R2", "window": [8, 10]},
+  "supplement_approval": {"request_id": "afternoon-approved", "order_id": "afternoon-mix", "decision": "approve"},
+  "issue": {"request_id": "museum-day", "version": "R2"}
+}
