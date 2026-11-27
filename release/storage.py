@@ -4,6 +4,7 @@ from pathlib import Path
 
 from edit.revisions import ensure_initial_cut
 from edit.snapshots import create_snapshot_store
+from merge.store import create_merge_store
 from release.artifact import create_release_store
 from review.orders import create_order_store
 from review.receipts import create_receipt_store
@@ -40,6 +41,7 @@ def initialize_database(path: str | Path, fixture_path: Path = DEFAULT_FIXTURE) 
         create_recording_catalog(db)
         create_original_store(db)
         create_snapshot_store(db)
+        create_merge_store(db)
         create_order_store(db)
         create_receipt_store(db)
         create_release_store(db)

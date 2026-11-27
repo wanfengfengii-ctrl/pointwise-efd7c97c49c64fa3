@@ -11,6 +11,7 @@ from urllib.parse import parse_qs, unquote, urlsplit
 
 from edit.operations import EditOperation
 from edit.revisions import RevisionRequest, submit_revision
+from merge.coordinator import confirm_merge, preview_merge, read_merge_origin
 from preview.playlist import get_preview, serialize_playlist
 from release.history import read_release
 from release.issuance import IssueRequest, issue_release
@@ -108,6 +109,36 @@ def _edit_version(db: sqlite3.Connection, data: dict) -> tuple[int, dict]:
     }
 
 
+def _merge_preview(db: sqlite3.Connection, data: dict) -> tuple[int, dict]:
+    _shape(data, {'parent', 'left', 'right'})
+    candidate = preview_merge(
+        db,
+        _identifier(data, 'parent'),
+        _identifier(data, 'left'),
+        _identifier(data, 'right'),
+    )
+    return 200, candidate
+
+
+def _merge_confirm(db: sqlite3.Connection, data: dict) -> tuple[int, dict]:
+    _shape(data, {'parent', 'left', 'right', 'version', 'state', 'choice'})
+    state = data['state']
+    if not isinstance(state, str) or not state:
+        raise GuideError('invalid_request', 'A non-empty candidate state is required')
+    choice = data['choice']
+    if choice is not None and not isinstance(choice, str):
+        raise GuideError('invalid_request', 'choice must be an option id string or null')
+    return confirm_merge(
+        db,
+        parent=_identifier(data, 'parent'),
+        left=_identifier(data, 'left'),
+        right=_identifier(data, 'right'),
+        version=_identifier(data, 'version'),
+        state=state,
+        choice=choice,
+    )
+
+
 def _review_order(db: sqlite3.Connection, data: dict) -> tuple[int, dict]:
     _shape(data, {'order_id', 'version', 'window'})
     order, playlist = open_review_order(db, _identifier(data, 'order_id'), _identifier(data, 'version'), _window(data['window']))
@@ -135,6 +166,8 @@ def _issue(db: sqlite3.Connection, data: dict) -> tuple[int, dict]:
 _POST = {
     '/intake': _enter_recording,
     '/edit_version': _edit_version,
+    '/merge_preview': _merge_preview,
+    '/merge_confirm': _merge_confirm,
     '/review_order': _review_order,
     '/review_decision': _review_decision,
     '/issue': _issue,
@@ -154,6 +187,8 @@ def _get(db: sqlite3.Connection, path: str, query: str) -> dict:
             return {**asdict(original), 'length': entry.length, 'available': entry.available.pair()}
         case ('coverage', version):
             return coverage_for_version(db, version).as_json()
+        case ('merge_origin', version):
+            return read_merge_origin(db, version)
         case ('read_release', release_id):
             return asdict(read_release(db, release_id))
         case _:
